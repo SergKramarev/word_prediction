@@ -1,18 +1,27 @@
 # That is the fucntion for reading and cleaning text for coursera capstone project.
-# All other files in this capstone use this fucnction as a first step towards further
+# All other files in this capstone use this function as a first step towards further
 # analysis.
 # 
 # Function converts all sumbols to ASCII, removes profanities, does some basic
 # cleaning like addition of apostrophe, removing non-letter symbols, removing 
-# numbers, correct some contradictions,
+# numbers, correct some contradictions, removing sentences with too many mistakes,
+# removing strange one-, two- and three-letter words
 
+
+
+###
+###
+###
+### NEED TO DELETE PRRINTING OF TWO LETTER WORDS AFTER TESTING
+###
+###
 
 library(dplyr)
 library(tm)
 library(hunspell)
 library(tokenizers)
 
-# Creating list of profanities. This list is the list of profanities that 
+# Creating list of profanities. This list is the list of profanities that was
 # downloaded from YT and that is their official list.
 
 con.prof <- file("blacklist_words.txt", "r")
@@ -127,3 +136,4 @@ text.prepare <- function(file.Path,
      
     return(text)
 } 
+rm(con.prof)
