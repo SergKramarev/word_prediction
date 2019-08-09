@@ -1,6 +1,10 @@
-# That is the fucntion for reading and cleaning textfor coursera capstone project.
-# All other files in this capstone use this fucntion as a first step towards further
+# That is the fucntion for reading and cleaning text for coursera capstone project.
+# All other files in this capstone use this fucnction as a first step towards further
 # analysis.
+# 
+# Function converts all sumbols to ASCII, removes profanities, does some basic
+# cleaning like addition of apostrophe, removing non-letter symbols, removing 
+# numbers, correct some contradictions,
 
 
 library(dplyr)
@@ -8,32 +12,56 @@ library(tm)
 library(hunspell)
 library(tokenizers)
 
+# Creating list of profanities. This list is the list of profanities that 
+# downloaded from YT and that is their official list.
+
+con.prof <- file("blacklist_words.txt", "r")
+profanities <- readLines(con.prof)[14]
+close(con.prof)
+profanities <<- unlist(strsplit(profanities, ", ", fixed = TRUE))
+
+
 text.prepare <- function(file.Path, 
                          n.lines = -1L, 
                          seed = 659, 
                          max.mistakes = 2, 
-                         tokens.in.seq.min.max = c(20, 200)) {
+                         min.words.in.sentence = 3,
+                         separate.sentences = TRUE) {
     
-    #Reading files
-    #con <- file(file.Path, "r")
-    #print(sprintf("Reading %d lines", n.lines))
-    #text <- readLines(con, n = n.lines)
-    #close(con)
-    text <- file.Path
+    #Reading file with text
+    con <- file(file.Path, "r")
+    print(sprintf("Reading %d lines", n.lines))
+    text <- readLines(con, n = n.lines)
+    close(con)
+    
+    #Tokenizing text in sentences if separate.sentences = TRUE
+    if (separate.sentences) {
+        text <- tokenize_sentences(text, simplify = TRUE)
+        text <- unlist(text)
+    }
+    
     # Some basic cleaning
-    text <- iconv(text, from =  "utf-8", to = "ascii", sub = " ")
-    text <- removeWords(text, profanities)
-    text <- gsub("Im ", "I'm ", text, fixed = TRUE)
-    text <- gsub("Ive ", "I've ", text, fixed = TRUE)
-    text <- tolower(text)
-    text <- gsub("&", " and ", fixed = TRUE, text)
-    text <- gsub("(?![a-z']).", " ", text, perl = TRUE)
-    text <- gsub(" u ", " you ", text)
+    text <- text %>% 
+        iconv(from =  "utf-8", to = "ascii", sub = " ") %>%
+        removeWords(profanities) %>%
+        tolower() %>%
+        gsub(pattern = "^im ", replacement = "i'm ", fixed = TRUE) %>%
+        gsub(pattern = "^ive ", replacement =  "i've ", fixed = TRUE) %>%
+        gsub(pattern = " im ", replacement = "i'm ", fixed = TRUE) %>%
+        gsub(pattern = " ive ", replacement =  "i've ", fixed = TRUE) %>%
+        gsub(pattern = "&", replacement =  " and ", fixed = TRUE) %>%
+        gsub(pattern = "(?![a-z']).", replacement = " ", perl = TRUE) %>%
+        gsub(pattern = " u ", replacement =  " you ")
+    
+    
+    
+    # Creating vocabulary
     words <- tokenize_words(text, strip_punct = FALSE)
     words <- unique(unlist(words))
     len <- nchar(words)
     one.letter <- words[len == 1]
     two.letter <- words[len == 2]
+    print(two.letter)
     three.letter <- words[len == 3]
     
     # there are onle two one letter word in English "a" and "i"
@@ -41,11 +69,14 @@ text.prepare <- function(file.Path,
     one.letter.wrong <- removePunctuation(one.letter.wrong)
     text <- removeWords(text, one.letter.wrong)
     
-    # there are only 24 most used two letters words, so removing other words combinations will make text cleaner
+    # There are 24 most used two letters words, so removing other words 
+    # combinations will make text cleaner. These 24 most used two-letter words
+    # are in two_letter_words.txt file
     two.letters <- readLines("two_letter_words.txt")
     two.letters <- unlist(strsplit(two.letters, " "))
     two.letters <- c(two.letters, tolower(state.abb),"dc", "cd", "tv", "kg", "re", "ll", "ve", "nt")
     two.letter.wrong <- two.letter[!(two.letter %in% two.letters)]
+    print(two.letter.wrong)
     text <- removeWords(text, two.letter.wrong)
     
     three.letter.wrong <- three.letter[!(hunspell_check(three.letter))]
@@ -60,40 +91,39 @@ text.prepare <- function(file.Path,
     text <- removeWords(text, three.letter.wrong1)
     text <- removeWords(text, three.letter.wrong2)
     
+    # Calculating some basic statistic that can show abnormalities in our text.
+    # This stat can show too long words (sentences entered without spaces) or too
+    # short words
     n.chars <- count_characters(text)
     textlen <- count_words(text)
     rate <- n.chars/textlen
     
-    stat.text <- data.frame(row.number = 1:length(textlen), n.words = textlen, n.chars = n.chars, rate = rate)
+    stat.text <- data.frame(row.number = 1:length(textlen), n.words = textlen,
+                            n.chars = n.chars, rate = rate)
     stat.text <- stat.text[!(stat.text$n.words <= 5 & stat.text$rate > 8), ]
     text <- text[stat.text$row.number]
     
+    # Deleting sentences with number of mistakes more than certain amount specified
+    # in function
     
-    # This line should be in any code!
-    # text <- text[n.chars >= tokens.in.seq.min.max[1] & n.chars <= tokens.in.seq.min.max[2]]
+    text <- unlist(tokenize_sentences(text))
+    sentences <- length(text)
+    mistakes <- hunspell(text)
+    mistakes <- sapply(mistakes, length)
+    correct <- mistakes <= max.mistakes
+    total.correct <- length(correct)
+    total.mistakes <- sum(mistakes)
+    text <- text[correct]
+   
+    print(sprintf("Text contains %d mistakes", total.mistakes))
+    print(sprintf("Text contains %d total sentences", sentences))
+    print(sprintf("Text contains %d correct sentences", total.correct))
     
-    
-    delete.mistakes <- function(text, max.m = max.mistakes){
-        text <- unlist(tokenize_sentences(text))
-        sentences <- length(text)
-        mistakes <- hunspell(text)
-        mistakes <- sapply(mistakes, length)
-        correct <- mistakes <= max.m
-        total.correct <- length(correct)
-        total.mistakes <- sum(mistakes)
-        text <- text[correct]
-        return(list(text.correct = text, mistakes = total.mistakes, correct.sent = total.correct, num.sent = sentences))
-    }
-    
-    correct.text <- delete.mistakes(text)
-    print(sprintf("Text contains %d mistakes", correct.text$mistakes))
-    print(sprintf("Text contains %d total sentences", correct.text$num.sent))
-    print(sprintf("Text contains %d correct sentences", correct.text$correct.sent))
-    
-    text <- correct.text$text.correct
     text <- gsub("( )+", " ", text)
-    #    text <- paste0(text, collapse = " ")
-    #    text <- tokenize_characters(text, strip_non_alphanum = FALSE, simplify = TRUE)
-    # text <- tokenize_words(text, strip_non_alphanum = FALSE, simplify = FALSE)   
+    #text <- removePunctuation(text)
+    n.words <- count_words(text)
+    text <- text[n.words >= min.words.in.sentence]
+    
+     
     return(text)
 } 
