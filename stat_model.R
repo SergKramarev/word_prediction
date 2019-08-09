@@ -18,8 +18,8 @@ min.fivegr.freq <- 2
 
 # Loading data
 
-twitter <- text.prepare("en_US.twitter.txt", n.lines = 100, min.words.in.sentence = 4)
-blogs <- text.prepare("en_US.blogs.txt", n.lines = 100, min.words.in.sentence = 4)
+twitter <- text.prepare("en_US.twitter.txt", n.lines = 500, min.words.in.sentence = 4)
+blogs <- text.prepare("en_US.blogs.txt", n.lines = 500, min.words.in.sentence = 4)
 text <- c(twitter, blogs)
 rm(twitter, blogs, profanities)
 
@@ -73,7 +73,7 @@ trigram1 <- trigram %>% group_by(bigram) %>% summarise(
                                             n.disc.trig = n())
 trigram <- merge(trigram, trigram1, all.x = TRUE)
 trigram <- merge(trigram, bigram, all.x = TRUE, by.x = "bigram", by.y = "bigram")
-rm(bigram, trigram1)
+#rm(bigram, trigram1)
 
 trigram <- trigram %>% mutate(
                             Prob.tri = round((frequency - 0.75)/sum.bigram.is.bigram 
@@ -104,10 +104,9 @@ stopCluster(clust)
 
 four1 <- fourgram %>% group_by(trigram) %>% summarise(sum.trigram.is.trigram = sum(frequency), n.disc.four = n())
 fourgram <- merge(fourgram, four1, all.x = TRUE)
-rm(four1)
 
 fourgram <- merge(fourgram, trigram, all.x = TRUE, by.x = "trigram", by.y = "trigram")
-rm(trigram)
+#rm(trigram, four1)
 
 fourgram <- fourgram %>% mutate(Prob.four = (frequency - 0.75)/sum.trigram.is.trigram + 0.75*n.disc.four/sum.trigram.is.trigram*Prob.tri)
 fourgram <- select(fourgram, 
@@ -140,7 +139,7 @@ five1 <- fivegram %>% group_by(fourgram) %>%
 fivegram <- merge(fivegram, five1, all.x = TRUE)
 fivegram <- merge(fivegram, fourgram, all.x = TRUE, 
                   by.x = "fourgram", by.y = "fourgram")
-rm(fourgram, five1)
+# rm(fourgram, five1)
 
 fivegram <- fivegram %>% 
             mutate(Prob.five = round((frequency -0.75)/sum.fourgram.is.fourgram 
@@ -154,31 +153,25 @@ fivegram <- select(fivegram,
 
 
 # Creating dictionary
-wordsbigram <- unique(unlist(tokenizers::tokenize_words(fivegram[,3], strip_punct = FALSE)))
-wordstrigram <- unique(unlist(tokenizers::tokenize_words(fivegram[,6], strip_punct = FALSE)))
-wordsfourgram <- unique(unlist(tokenizers::tokenize_words(fivegram[,9], strip_punct = FALSE)))
-wordsfivegram <- unique(fivegram[, 11])
-words <- unique(c(wordsbigram, wordstrigram, wordsfourgram, wordsfivegram))
-rm(wordsbigram)
-rm(wordstrigram)
-rm(wordsfourgram)
-rm(wordsfivegram)
+words <- unique(c(fivegram$word1, fivegram$word2, fivegram$word3, fivegram$word4, fivegram$word5))
 
-table <- as.data.table(fivegram[, c(1,2,4,5,7,8,10,11,12)])
-rm(fivegram)
+table <- select(fivegram, word1, word2, word3, word4, word5, Prob.bigram, Prob.tri, Prob.four, Prob.five)
+#rm(fivegram)
 
 dict <- 1:length(words)
 names(dict) <- words
 rev.dict <- names(dict)
 names(rev.dict) <- dict
 rm(words)
-table$word1 <- dict[table[,word1]]
-table$word2 <- dict[table[,word2]] 
-table$word3 <- dict[table[,word3]]
-table$word4 <- dict[table[,word4]]
-table$word5 <- dict[table[,word5]] 
+table$word1 <- dict[table[,"word1"]]
+table$word2 <- dict[table[,"word2"]] 
+table$word3 <- dict[table[,"word3"]]
+table$word4 <- dict[table[,"word4"]]
+table$word5 <- dict[table[,"word5"]] 
 
-write.csv(table, "full.table.csv")
+write.csv(table, "prob.table.Kneser-Ney.csv")
+write.table(dict, "dictionary.txt", row.names = FALSE)
+write.table(rev.dict, "rev.dictionary.txt")
 
 
 give.next.word <- function(data, sentence) {
