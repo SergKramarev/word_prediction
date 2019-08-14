@@ -34,7 +34,7 @@ text.prepare <- function(file.Path,
                          n.lines = -1L, 
                          seed = 659, 
                          max.mistakes = 2, 
-                         min.words.in.sentence = 3,
+                         min.words.in.sentence = 5,
                          separate.sentences = TRUE) {
     
     #Reading file with text
@@ -133,7 +133,7 @@ text.prepare <- function(file.Path,
     n.words <- count_words(text)
     text <- text[n.words >= min.words.in.sentence]
     
-     
+    text <- text[!is.na(text)] 
     return(text)
 } 
 rm(con.prof)
