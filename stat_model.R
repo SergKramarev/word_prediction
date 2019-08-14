@@ -1,6 +1,8 @@
-# That is file for analysis of texts and calculating probabilities table 
+# That is file for analysis of texts and calculating word probabilities 
 # according to Kneser-Ney algorithm.
+# Preliminary text cleaning is done by text_prepare function
 
+# Loading functions and libraies
 source("text_prepare.R")
 
 library(dplyr)
@@ -13,15 +15,14 @@ min.trig.freq <- 2
 min.fourgr.freq <- 2
 min.fivegr.freq <- 2
 
-
-
-
 # Loading data
 
-twitter <- text.prepare("en_US.twitter.txt", n.lines = 500, min.words.in.sentence = 4)
-blogs <- text.prepare("en_US.blogs.txt", n.lines = 500, min.words.in.sentence = 4)
+twitter <- text.prepare("en_US.twitter.txt", n.lines = 5000, min.words.in.sentence = 5)
+blogs <- text.prepare("en_US.blogs.txt", n.lines = 1000, min.words.in.sentence = 5)
 text <- c(twitter, blogs)
 rm(twitter, blogs, profanities)
+
+#maybe add start symbola here???????
 
 # Creating bigrams. Calculating frequency of bigrams
 bigram <- tokenizers::tokenize_ngrams(text, n = 2)
@@ -118,7 +119,7 @@ fourgram <- select(fourgram,
 # Creating fivegrams
 
 fivegram <- tokenizers::tokenize_ngrams(text, n = 5)
-rm(text)
+# rm(text)
 fivegram <- data_frame(fivegram = unlist(fivegram)) %>% count(fivegram, sort = TRUE)
 names(fivegram)[2] <- "frequency"
 
