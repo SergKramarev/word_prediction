@@ -1,3 +1,12 @@
+# LSTM_letters function is the algorithm for analysis of the text for coursera 
+# capstone project using LSTM neural net.  It is letter based model.
+# First stage of the analysis is text cleaning using text_prepare function
+# After cleaning prepared text separated into characters, created arrays and 
+# learning of NN.
+
+# Loading functions and libraries
+source("text_prepare.R")
+
 library(keras)
 library(readr)
 library(stringr)
@@ -6,108 +15,44 @@ library(tokenizers)
 library(hunspell)
 library(tm)
 
-# Text preparation --------------------------------------------------------
-
-text.prepare <- function(file.Path, n.lines = -1L, seed = 659, max.mistakes = 2) {
-    
-    #Reading files
-    con <- file(file.Path, "r")
-    print(sprintf("Reading %d lines", n.lines))
-    text <- readLines(con, n = n.lines)
-    close(con)
-    
-    # Some basic cleaning
-    text <- iconv(text, from =  "utf-8", to = "ascii", sub = " ")
-    text <- gsub("Im ", "I'm ", text, fixed = TRUE)
-    text <- gsub("Ive ", "I've ", text, fixed = TRUE)
-    text <- tolower(text)
-    text <- gsub("&", " and ", fixed = TRUE, text)
-    text <- gsub("(?![a-z']).", " ", text, perl = TRUE)
-    text <- gsub(" u ", " you ", text)
-    words <- tokenize_words(text, strip_punct = FALSE)
-    words <- unique(unlist(words))
-    len <- nchar(words)
-    one.letter <- words[len == 1]
-    two.letter <- words[len == 2]
-    three.letter <- words[len == 3]
-    
-    # there are onle two one letter word in English "a" and "i"
-    one.letter.wrong <- one.letter[!(one.letter %in% c("i", "a", "m", "s", "d", "t"))]
-    one.letter.wrong <- removePunctuation(one.letter.wrong)
-    text <- removeWords(text, one.letter.wrong)
-    
-    # there are only 24 most used two letters words, so removing other words combinations will make text cleaner
-    two.letters <- readLines("two_letter_words.txt")
-    two.letters <- unlist(strsplit(two.letters, " "))
-    two.letters <- c(two.letters, tolower(state.abb),"dc", "cd", "tv", "kg", "re", "ll", "ve", "nt")
-    two.letter.wrong <- two.letter[!(two.letter %in% two.letters)]
-    text <- removeWords(text, two.letter.wrong)
-    
-    three.letter.wrong <- three.letter[!(hunspell_check(three.letter))]
-    three.letter.wrong <- three.letter.wrong[-(grep("i'm",three.letter.wrong, fixed = TRUE))]
-    three.letter.wrong <- three.letter.wrong[-(grep("i'd",three.letter.wrong, fixed = TRUE))]
-    
-    tlw <- length(three.letter.wrong)
-    tlw1 <- floor(tlw/2)
-    
-    three.letter.wrong1 <- three.letter.wrong[1:tlw1]
-    three.letter.wrong2 <- three.letter.wrong[tlw1:tlw]
-    text <- removeWords(text, three.letter.wrong1)
-    text <- removeWords(text, three.letter.wrong2)
-    
-    textlen <- count_words(text)
-    # This line should be in any code!
-    text <- text[textlen >= 15]
-    
-    
-    
-    delete.mistakes <- function(text, max.m = max.mistakes){
-        text <- unlist(tokenize_sentences(text))
-        sentences <- length(text)
-        mistakes <- hunspell(text)
-        mistakes <- sapply(mistakes, length)
-        correct <- mistakes <= max.m
-        total.correct <- length(correct)
-        total.mistakes <- sum(mistakes)
-        text <- text[correct]
-        return(list(text.correct = text, mistakes = total.mistakes, correct.sent = total.correct, num.sent = sentences))
-    }
-    
-    correct.text <- delete.mistakes(text)
-    print(sprintf("Text contains %d mistakes", correct.text$mistakes))
-    print(sprintf("Text contains %d total sentences", correct.text$num.sent))
-    print(sprintf("Text contains %d correct sentences", correct.text$correct.sent))
-    
-    text <- correct.text$text.correct
-    text <- gsub("( )+", " ", text)
-    text <- paste0(text, collapse = " ")
-    text <- tokenize_characters(text, strip_non_alphanum = FALSE, simplify = TRUE)
-   
-    return(text)
-}
-
-text <- text.prepare("en_US.twitter.txt", n.lines = 150000)
-
-
-# Parameters --------------------------------------------------------------
-
+# Declaring variables
 maxlen <- 40
 
+
+# Text preparation --------------------------------------------------------
+
+twitter <- text.prepare("en_US.twitter.txt", n.lines = 100, min.words.in.sentence = 5)
+blogs <- text.prepare("en_US.blogs.txt", n.lines = 100, min.words.in.sentence = 5)
+text <- c(twitter, blogs)
+
+# Text.prepare function uses word-based limatations in sentence length. Because we have 
+# letter based model we need to limit minimal amount of letters in sentence in order
+# to properly create arrays for learning.
+
+len <- count_characters(text)
+text <- text[len >= maxlen + 10]
+
 # Data Preparation --------------------------------------------------------
+text <- tokenize_characters(text, strip_non_alphanum = FALSE, simplify = FALSE)
 
-print(sprintf("corpus length: %d", length(text)))
-
-chars <- text %>%
+chars <- unlist(text) %>%
     unique() %>%
     sort()
 
 print(sprintf("total chars: %d", length(chars)))  
 
 # Cut the text in semi-redundant sequences of maxlen characters
-dataset <- map(
-    seq(1, length(text) - maxlen - 1, by = 3), 
-    ~list(sentece = text[.x:(.x + maxlen - 1)], next_char = text[.x + maxlen])
-)
+dataset <- list()
+t <- 1
+
+for (i in 1:length(text)){
+    seq.i <- length(seq(1, length(text[[i]]) - maxlen - 1, by = 1))
+    t.next <- t + seq.i - 1
+    dataset[t:t.next] <- map(
+        seq(1, length(text[[i]]) - maxlen - 1, by = 1), 
+        ~list(sentece = text[[i]][.x:(.x + maxlen - 1)], next_char = text[[i]][.x + maxlen]))
+    t <- t.next + 1
+}
 
 dataset <- transpose(dataset)
 
@@ -128,7 +73,7 @@ for(i in 1:length(dataset$sentece)){
 
 
 # Creating sequences for test set -----------------------------------------------
-train.ratio = 0.7
+train.ratio = 0.85
 numbers <- seq_len(length(dataset$sentece))
 train <- sample(numbers, length(numbers)*train.ratio)
 rm(dataset)
