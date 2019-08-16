@@ -18,12 +18,12 @@ sample_mod <- function(preds, temperature = 1){
         which.max()
 }
 
-on_epoch_end <- function(sentence_entered) {
+NN_next.word <- function(sentence_entered) {
     
     sentence <- tokenizers::tokenize_characters(sentence_entered, strip_non_alphanum = TRUE, simplify = TRUE)
     sentence1 <- tail(sentence, maxlen)
     
-    for(diversity in c(0.9, 1.1, 1.2)){
+    for(diversity in c(1, 1, 1)){
         generated <- ""
         next_index <- 1
         
@@ -47,12 +47,3 @@ on_epoch_end <- function(sentence_entered) {
         
     }
 }
-
-print_callback <- callback_lambda(on_epoch_end = on_epoch_end)
-
-model %>% fit(
-    x, y,
-    batch_size = 128,
-    epochs = 1,
-    callbacks = print_callback
-)
