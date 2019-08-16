@@ -7,42 +7,33 @@
 #    http://shiny.rstudio.com/
 #
 
+nn <- "NN"
+Kneser_Ney <- "Knesr-Ney"
+
 library(shiny)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-
     # Application title
     titlePanel("Next word prediction"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
+    br(),
+    textInput("text", label = "Print your text here", value = "Enter text....."),
+    br(),
+    fluidRow(
+        column(4,
+               verbatimTextOutput("nn")),
+        column(4,
+               verbatimTextOutput("Kneser_Ney"))
     )
+ 
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+    
+    output$nn <- renderText("NN")
+    output$Kneser_Ney <- renderText("KN")
 
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
-    })
 }
 
 # Run the application 
