@@ -8,7 +8,6 @@
 source("text_prepare.R")
 
 library(keras)
-library(readr)
 library(stringr)
 library(purrr)
 library(tokenizers)
@@ -112,7 +111,7 @@ callbacks <- callback_early_stopping(monitor = "val_loss", min_delta = 0,005, pa
 model %>% fit(
     x, y,
     batch_size = 128,
-    epochs = 250,
+    epochs = 3,
     validation_data = list(x.test, y.test),
     verbose = 2, 
     callbacks = callbacks)
