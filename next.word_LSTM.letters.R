@@ -1,8 +1,10 @@
-# Variables declare
+# This is the fucntion for next word generation with LSTM neural net.
+# Neural net was trained using the file LSTM_NN.letters and have final accuracy
+# around 55%.
 
+# Variables declare
 maxlen <- 40
-chars <- chars
-sentence_entered <- sentence_entered
+chars <- readLines("chars.txt")
 
 # Code
 
@@ -18,14 +20,13 @@ sample_mod <- function(preds, temperature = 1){
 
 on_epoch_end <- function(sentence_entered) {
     
-    sentence <- tokenizers::tokenize_characters(sentence_entered, strip_non_alphanum = FALSE, simplify = TRUE)
+    sentence <- tokenizers::tokenize_characters(sentence_entered, strip_non_alphanum = TRUE, simplify = TRUE)
     sentence1 <- tail(sentence, maxlen)
     
-    
-    for(diversity in c(0.1, 0.4, 0.7)){
+    for(diversity in c(0.9, 1.1, 1.2)){
         generated <- ""
         next_index <- 1
-      
+        
         while (next_index != 2){
             
             x <- sapply(chars, function(x){
@@ -42,8 +43,6 @@ on_epoch_end <- function(sentence_entered) {
             
         }
         
-        #next_word <- tokenizers::tokenize_words(generated)
-        #next_word <- next_word[[1]][1]
         print(generated)
         
     }
