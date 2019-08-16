@@ -7,15 +7,6 @@
 # numbers, correct some contradictions, removing sentences with too many mistakes,
 # removing strange one-, two- and three-letter words
 
-
-
-###
-###
-###
-### NEED TO DELETE PRRINTING OF TWO LETTER WORDS AFTER TESTING
-###
-###
-
 library(dplyr)
 library(tm)
 library(hunspell)
@@ -70,7 +61,6 @@ text.prepare <- function(file.Path,
     len <- nchar(words)
     one.letter <- words[len == 1]
     two.letter <- words[len == 2]
-    print(two.letter)
     three.letter <- words[len == 3]
     
     # there are onle two one letter word in English "a" and "i"
@@ -85,7 +75,6 @@ text.prepare <- function(file.Path,
     two.letters <- unlist(strsplit(two.letters, " "))
     two.letters <- c(two.letters, tolower(state.abb),"dc", "cd", "tv", "kg", "re", "ll", "ve", "nt")
     two.letter.wrong <- two.letter[!(two.letter %in% two.letters)]
-    print(two.letter.wrong)
     text <- removeWords(text, two.letter.wrong)
     
     three.letter.wrong <- three.letter[!(hunspell_check(three.letter))]
