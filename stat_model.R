@@ -10,8 +10,8 @@ library(tokenizers)
 library(parallel)
 
 # Declaring variables
-min.bigr.freq <- 2
-min.trig.freq <- 2
+min.bigr.freq <- 5
+min.trig.freq <- 4
 min.fourgr.freq <- 2
 min.fivegr.freq <- 2
 
