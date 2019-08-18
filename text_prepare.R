@@ -67,6 +67,7 @@ text.prepare <- function(file.Path,
     one.letter.wrong <- one.letter[!(one.letter %in% c("i", "a", "m", "s", "d", "t"))]
     one.letter.wrong <- removePunctuation(one.letter.wrong)
     text <- removeWords(text, one.letter.wrong)
+    text <- gsub(pattern = "( s )|( d )|( t )|( m )", replacement = "", text)
     
     # There are 24 most used two letters words, so removing other words 
     # combinations will make text cleaner. These 24 most used two-letter words
@@ -76,6 +77,7 @@ text.prepare <- function(file.Path,
     two.letters <- c(two.letters, tolower(state.abb),"dc", "cd", "tv", "kg", "re", "ll", "ve", "nt")
     two.letter.wrong <- two.letter[!(two.letter %in% two.letters)]
     text <- removeWords(text, two.letter.wrong)
+    text <- gsub(pattern = "( re )|( ll )|( ve )|( nt )", replacement = "", text)
     
     three.letter.wrong <- three.letter[!(hunspell_check(three.letter))]
     three.letter.wrong <- three.letter.wrong[-(grep("i'm",three.letter.wrong, fixed = TRUE))]
