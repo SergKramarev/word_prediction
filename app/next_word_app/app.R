@@ -1,15 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
-nn <- "NN"
-Kneser_Ney <- "Knesr-Ney"
-
 library(shiny)
 
 # Define UI for application that draws a histogram
