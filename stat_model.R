@@ -10,19 +10,19 @@ library(tokenizers)
 library(parallel)
 
 # Declaring variables
-min.bigr.freq <- 5
-min.trig.freq <- 4
+min.bigr.freq <- 2
+min.trig.freq <- 2
 min.fourgr.freq <- 2
 min.fivegr.freq <- 2
 
 # Loading data
 
-twitter <- text.prepare("en_US.twitter.txt", n.lines = 5000, min.words.in.sentence = 5)
-blogs <- text.prepare("en_US.blogs.txt", n.lines = 1000, min.words.in.sentence = 5)
+twitter <- text.prepare("en_US.twitter.txt", n.lines = 5000, min.words.in.sentence = 4)
+blogs <- text.prepare("en_US.blogs.txt", n.lines = 1000, min.words.in.sentence = 4)
 text <- c(twitter, blogs)
 rm(twitter, blogs, profanities)
 
-#maybe add start symbola here???????
+for (i in 1:length(text)) {text[i] <- paste("s't'a'r't", text[i])}
 
 # Creating bigrams. Calculating frequency of bigrams
 bigram <- tokenizers::tokenize_ngrams(text, n = 2)
@@ -171,5 +171,5 @@ table$word4 <- dict[table[,"word4"]]
 table$word5 <- dict[table[,"word5"]] 
 
 write.csv(table, "prob.table.Kneser-Ney.csv")
-write.table(dict, "dictionary.txt")
-write.table(rev.dict, "rev.dictionary.txt")
+write.table(dict, "dictionary.txt", col.names = FALSE)
+write.table(rev.dict, "rev.dictionary.txt", col.names = FALSE)

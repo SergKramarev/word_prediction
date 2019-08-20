@@ -8,6 +8,17 @@
 library(tm)
 library(data.table)
 
+table <- read.csv("prob.table.Kneser-Ney.csv")
+dict.tmp <- read.table("dictionary.txt", col.names = c("word", "number"), header = FALSE, stringsAsFactors = FALSE)
+rev.dict.tmp <- read.table("rev.dictionary.txt", col.names = c("number", "word"), header = FALSE, stringsAsFactors = FALSE)
+dict <- dict.tmp$word
+names(dict) <- dict.tmp$number
+rm(dict.tmp)
+rev.dict <- rev.dict.tmp$number
+names(rev.dict) <- rev.dict.tmp$word
+rm(rev.dict.tmp)
+
+
 # Нужно подумать над тем как быть с предложениями в которых нет пяти слов, как быть с 
 # предложениями в которых последнее слово или несколько слов в пердложении отсутсвуют в словаре
 # Как изменить алгоритм для более быстрой работы

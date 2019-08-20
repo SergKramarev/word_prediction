@@ -5,6 +5,7 @@
 # Variables declare
 maxlen <- 40
 chars <- readLines("chars.txt")
+model <- load_model_hdf5("!!!model.2019-07-15.h5")
 
 # Code
 
