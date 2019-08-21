@@ -5,6 +5,7 @@
 # Loading libraries
 library(keras)
 library(stringi)
+library(stringr)
 library(tokenizers)
 
 # Variables declaration
@@ -49,7 +50,9 @@ NN_next.word <- function(sentence_entered) {
             
         }
         
-        return(generated)
+        prev <- word(sentence_entered, -1)
+        print(prev)
+        return(paste(prev, generated, sep = ""))
         
     }
 }
