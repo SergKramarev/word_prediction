@@ -16,6 +16,8 @@ ui <- fluidPage(
     titlePanel("Next word prediction"),
     br(),
     textInput("text", label = "Print your text here", placeholder = "Enter text here....."),
+    actionButton("button", "Generate text"),
+    br(),
     br(),
     fluidRow(
         column(4,
@@ -40,6 +42,11 @@ server <- function(input, output) {
         return(paste("Enter at least", maxlen, "symbols"))
         } else {
             return(NN_next.word(sentence()))} # function from next.word-LSTM.letters.R source
+    })
+    
+    
+    kn_output <- eventReactive(input$button, {
+        print("something works")
     })
     
     output$nn <- renderText(nn_output())
