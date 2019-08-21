@@ -15,7 +15,7 @@ ui <- fluidPage(
     # Application title
     titlePanel("Next word prediction"),
     br(),
-    textInput("text", label = "Print your text here", value = "Enter text....."),
+    textInput("text", label = "Print your text here", placeholder = "Enter text here....."),
     br(),
     fluidRow(
         column(4,
@@ -36,11 +36,10 @@ server <- function(input, output) {
     }) 
     
     nn_output <- reactive({ 
-        if (count_characters(sentence()) <= maxlen) {
-        return("Enter more symbols")
+        if (nchar(sentence()) <= maxlen) {
+        return(paste("Enter at least", maxlen, "symbols"))
         } else {
-            print(count_characters(sentence()))
-            return(NN_next.word(sentence()))}
+            return(NN_next.word(sentence()))} # function from next.word-LSTM.letters.R source
     })
     
     output$nn <- renderText(nn_output())
