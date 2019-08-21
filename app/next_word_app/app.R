@@ -7,10 +7,10 @@
 library(shiny)
 library(dplyr)
 
-#source("C:/Users/slonoc/Documents/word_prediction/next.word_LSTM.letters.R")
-source("C:/Users/slonoc/Documents/word_prediction/next.word_stat.R")
+source("C:/Users/Seezis  Office/Documents/word_prediction/next.word_LSTM.letters.R")
+source("C:/Users/Seezis  Office/Documents/word_prediction/next.word_stat.R")
 
-# Define UI for application that draws a histogram
+# Define UI for application that predicts the next word
 ui <- fluidPage(
     # Application title
     titlePanel("Next word prediction"),
@@ -31,8 +31,23 @@ ui <- fluidPage(
 # Define server logic required to draw a histogram
 server <- function(input, output) {
     
-    output$nn <- renderText("NN")
-    output$Kneser_Ney <- renderText("KN")
+    sentence <- reactive({
+        input$text
+    }) 
+    
+    nn_output <- reactive({ 
+        if (count_characters(sentence()) <= maxlen) {
+        return("Enter more symbols")
+        } else {
+            print(count_characters(sentence()))
+            return(NN_next.word(sentence()))}
+    })
+    
+    output$nn <- renderText(nn_output())
+    output$Kneser_Ney <- renderText(sentence())
+    
+    # next word using kneser-ney algorithm
+    
 
 }
 
