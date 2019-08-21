@@ -2,10 +2,15 @@
 # Neural net was trained using the file LSTM_NN.letters and have final accuracy
 # around 55%.
 
-# Variables declare
+# Loading libraries
+library(keras)
+library(stringi)
+library(tokenizers)
+
+# Variables declaration
 maxlen <- 40
-chars <- readLines("chars.txt")
-model <- load_model_hdf5("!!!model.2019-07-15.h5")
+chars <- readLines("C:/Users/Seezis  Office/Documents/word_prediction/chars.txt")
+model <- load_model_hdf5("C:/Users/Seezis  Office/Documents/word_prediction/!!!model.2019-07-15.h5")
 
 # Code
 
@@ -21,10 +26,10 @@ sample_mod <- function(preds, temperature = 1){
 
 NN_next.word <- function(sentence_entered) {
     
-    sentence <- tokenizers::tokenize_characters(sentence_entered, strip_non_alphanum = TRUE, simplify = TRUE)
-    sentence1 <- tail(sentence, maxlen)
+    sentence <- tokenizers::tokenize_characters(sentence_entered, simplify = FALSE, strip_non_alphanum = FALSE)
+    sentence1 <- tail(unlist(sentence), maxlen)
     
-    for(diversity in c(1, 1, 1)){
+    for(diversity in c(1)){
         generated <- ""
         next_index <- 1
         
@@ -44,7 +49,7 @@ NN_next.word <- function(sentence_entered) {
             
         }
         
-        print(generated)
+        return(generated)
         
     }
 }
