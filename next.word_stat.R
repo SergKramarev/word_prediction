@@ -7,10 +7,11 @@ c# That is the function for searching through the probabilities table and return
 # Loading functions and libraries
 library(tm)
 library(data.table)
+library(dplyr)
 
-table <- read.csv("C:/Users/Seezis  Office/Documents/word_prediction/prob.table.Kneser-Ney.csv")
-dict.tmp <- read.table("C:/Users/Seezis  Office/Documents/word_prediction/dictionary.txt", col.names = c("word", "number"), header = FALSE, stringsAsFactors = FALSE)
-rev.dict.tmp <- read.table("C:/Users/Seezis  Office/Documents/word_prediction/rev.dictionary.txt", col.names = c("number", "word"), header = FALSE, stringsAsFactors = FALSE)
+table <- read.csv("prob.table.Kneser-Ney.csv")
+dict.tmp <- read.table("dictionary.txt", col.names = c("word", "number"), header = FALSE, stringsAsFactors = FALSE)
+rev.dict.tmp <- read.table("rev.dictionary.txt", col.names = c("number", "word"), header = FALSE, stringsAsFactors = FALSE)
 dict <- dict.tmp$word
 names(dict) <- dict.tmp$number
 rm(dict.tmp)
@@ -18,12 +19,7 @@ rev.dict <- rev.dict.tmp$number
 names(rev.dict) <- rev.dict.tmp$word
 rm(rev.dict.tmp)
 
-
-# Нужно подумать над тем как быть с предложениями в которых нет пяти слов, как быть с 
-# предложениями в которых последнее слово или несколько слов в пердложении отсутсвуют в словаре
-# Как изменить алгоритм для более быстрой работы
-
-give.next.word <- function(data, sentence) {
+give.next.word <- function(data = table, sentence) {
     sentence <- tolower(sentence)
     sentence <- removePunctuation(sentence, preserve_intra_word_contractions = TRUE,
                                   preserve_intra_word_dashes =TRUE)
