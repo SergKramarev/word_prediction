@@ -10,8 +10,8 @@ library(tokenizers)
 
 # Variables declaration
 maxlen <- 40
-chars <- readLines("C:/Users/Seezis  Office/Documents/word_prediction/chars.txt")
-model <- load_model_hdf5("C:/Users/Seezis  Office/Documents/word_prediction/!!!model.2019-07-15.h5")
+chars <- readLines("chars.txt")
+model <- load_model_hdf5("!!!model.2019-07-15.h5")
 
 # Code
 
@@ -41,7 +41,7 @@ NN_next.word <- function(sentence_entered) {
             })
             x <- array_reshape(x, c(1, dim(x)))
             
-            preds <- predict(model, x)
+            preds <- keras::predict_on_batch(model, x) # just "predict" don't work in app deployed on shiny apps server
             next_index <- sample_mod(preds, diversity)
             next_char <- chars[next_index]
             
